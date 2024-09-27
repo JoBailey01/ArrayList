@@ -75,7 +75,7 @@ char* lstrInsertChar(lString*, lstrIndex, char);
 //Insert a copy of the input string at an arbitrary point in the string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation
 char* lstrInsertString(lString*, lstrIndex, char*);
 
-//Insert a <count>-length fragment of the input string at an arbitrary point in the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
+//Insert a <len>-length fragment of the input string at an arbitrary point in the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
 char* lstrInsertPartial(lString*, lstrIndex, char*, unsigned long);
 
 //Insert a character at the end of the string. Returns a pointer to the element, or NULL for a failed operation
@@ -84,7 +84,7 @@ char* lstrAppendChar(lString*, char);
 //Insert a copy of the input string at the end of the string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation
 char* lstrAppendString(lString*, char*);
 
-//Insert a <count>-length fragment of the input string at the end of the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
+//Insert a <len>-length fragment of the input string at the end of the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
 char* lstrAppendPartial(lString*, char*, unsigned long);
 
 //Insert a character at the start of the string. Returns a pointer to the element, or NULL for a failed operation
@@ -93,11 +93,11 @@ char* lstrPrependChar(lString*, char);
 //Insert a copy of the input string at the start of the string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation
 char* lstrPrependString(lString*, char*);
 
-//Insert a <count>-length fragment of the input string at the start of the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
+//Insert a <len>-length fragment of the input string at the start of the string. If the specified fragment length exceeds the total length of the input string, the operation reduces the fragment length to the length of the input string. Returns a pointer to the start of the copy of the input string, or NULL for a failed operation.
 char* lstrPrependPartial(lString*, char*, unsigned long);
 
 
-//Removing functions never affect the null terminator
+//Removal operations never affect the null terminator
 
 //Remove the character at the specified index. Returns 0 for success, or 1 if the operation fails (e.g., because the list is empty)
 int lstrRemoveChar(lString*, lstrIndex);
@@ -108,13 +108,13 @@ int lstrRemoveLastChar(lString*);
 //Remove the first character. Returns 0 for success, or 1 if the operation fails
 int lstrRemoveFirstChar(lString*);
 
-//Remove <count> characters, starting at the specified index and going forward. Returns 0 for success, or 1 if the operation fails (e.g., because the list has too few elements to remove)
+//Remove <len> characters, starting at the specified index and going forward. Returns 0 for success, or 1 if the operation fails (e.g., because the list has too few elements to remove)
 int lstrRemoveString(lString*, lstrIndex, lstrLength);
 
-//Remove <count> characters from the end of the string. Returns 0 for success, or 1 if the operation fails
+//Remove <len> characters from the end of the string. Returns 0 for success, or 1 if the operation fails
 int lstrRemoveLastString(lString*, lstrLength);
 
-//Remove <count> characters from the start of the string. Returns 0 for success, or 1 if the operation fails
+//Remove <len> characters from the start of the string. Returns 0 for success, or 1 if the operation fails
 int lstrRemoveFirstString(lString*, lstrLength);
 
 
@@ -125,11 +125,17 @@ lstrIndex lstrFindChar(lString*, char);
 lstrIndex lstrFindString(lString*, char*);
 
 
-//Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
+//Replace the first instance of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
 lstrLength lstrReplaceChar(lString*, char, char);
 
-//Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
+//Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
+lstrLength lstrReplaceAllChar(lString*, char, char);
+
+//Replace the first instance of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
 lstrLength lstrReplaceString(lString*, char*, char*);
+
+//Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
+lstrLength lstrReplaceAllString(lString*, char*, char*);
 
 
 //Overwrite the contents of the string with a new string. The new string may be empty. Returns 0 for success, or 1 if the operation fails
