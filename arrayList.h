@@ -83,7 +83,7 @@ void* getFirst(arrayList*);
 
 //Add an element to an arbitrary location in an arrayList. Takes a pointer to the new element (which is copied into the list) and the index for that element. All later elements are shifted up.
 //Returns a pointer to the element in the list, or NULL if the attempt failed (either because the list is too large or because the list is more than one element shorter than the specified insertion index)
-void* addAtIndex(arrayList*, void*, listIndex);
+void* addAtIndex(arrayList*, listIndex, void*);
 
 //Add an element to the end of an arrayList. Takes a pointer to the new element, which is copied into the list.
 //Returns a pointer to the element in the list, or NULL if the attempt failed (usually because the list is too large).
@@ -95,8 +95,8 @@ void* addToBeginning(arrayList*, void*);
 
 
 //Add operations for many ([count]) elements (works largely the same as single-add operations)
-//Returns a pointer to the beginning of the new elements in the list
-void* addManyAtIndex(arrayList*, void*, listIndex, listLength);
+//Returns a pointer to the beginning of the new elements in the list, or NULL if the operation failed (including cases where count < 1)
+void* addManyAtIndex(arrayList*, listIndex, void*, listLength);
 void* addManyToEnd(arrayList*, void*, listLength);
 void* addManyToBeginning(arrayList*, void*, listLength);
 
