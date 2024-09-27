@@ -165,8 +165,6 @@ listLength expandList(arrayList* list){
     //Redirect the list's head pointer to the new allocated memory
     list->head = newHead;
 
-    printf("Expanded list. New size: %ld\n", getAllocatedListSize(list));
-
     return list->allocatedLength;
 }
 
