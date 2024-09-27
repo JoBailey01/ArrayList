@@ -149,6 +149,9 @@ listLength expandList(arrayList* list){
     //Allocate enough memory for the new size
     void* newHead = (void*) malloc(list->size * newAlloc);
 
+    //Zero out new memory (valgrind finds it problematic to mess with uninitialised memory, so I assume I should initialise the memory, but I don't know what the issue really is)
+    memset(newHead, 0, list->size * newAlloc);
+
     //Copy all data from the old list memory to the new list memory
     //memmove(newHead, list->head, getAllocatedListSize(list)); //This is only necessary if the memory areas could overlap, which should be impossible in this case
     memcpy(newHead, list->head, getAllocatedListSize(list));
@@ -161,6 +164,8 @@ listLength expandList(arrayList* list){
     
     //Redirect the list's head pointer to the new allocated memory
     list->head = newHead;
+
+    printf("Expanded list. New size: %ld\n", getAllocatedListSize(list));
 
     return list->allocatedLength;
 }
