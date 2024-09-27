@@ -1,11 +1,7 @@
 #include <limits.h>
 
 #define DEFAULT_INITIAL_STRING_LENGTH 64
-#define MAXIMUM_STRING_LENGTH ULONG_MAX
-
-//TODO: Write arrayList functions but specific to the string (size 1) case
-//TODO: Write string-specific functions that take strings as input
-//TODO: Write output functions that copy regions of a string?
+#define MAXIMUM_STRING_BYTES ULONG_MAX
 
 //A string character index (unsigned long because the string can contain up to 2^64 characters)
 typedef unsigned long lstrIndex;
@@ -54,7 +50,7 @@ char* getLStringHead(lString*);
 lstrLength getLStringLength(lString*);
 
 //Get the actual allocated size of the string, including the null terminator, in bytes
-lstrLength getAllocatedLStringSize(lString);
+lstrLength getAllocatedLStringSize(lString*);
 
 
 //Get a pointer to an arbitrary character in the string by index. Returns NULL for an invalid string, an empty string, or an invalid index
@@ -66,7 +62,7 @@ char* lstrGetLast(lString*);
 //Get a pointer to the first character in the string. Returns NULL for an invalid or empty string.
 char* lstrGetFirst(lString*);
 
-//Get a substring by index and length. If the specified substring length is too long, then the returned substring will contain as many characters as possible before it reaches the end of the original string.
+//Get a substring by index and length. If the specified substring length is too long, then the returned substring will contain as many characters as possible before it reaches the end of the original string (this could result in an empty string). Returns NULL on a failed or invalid operation, such as a specified 0-length substring or an out-of-bounds index.
 //This function dynamically allocates memory, and its return value must be freed.
 char* lstrGetSubstr(lString*, lstrIndex, lstrLength);
 
@@ -122,17 +118,17 @@ int lstrRemoveLastString(lString*, lstrLength);
 int lstrRemoveFirstString(lString*, lstrLength);
 
 
-//Find the first instance of a given character in the lString. Returns the index of the character, or MAXIMUM_STRING_LENGTH on a failed operation. Note that MAXIMUM_STRING_LENGTH, as an index, will always either be unused or contain the null terminator, never an actual member of the string.
+//Find the first instance of a given character in the lString. Returns the index of the character, or MAXIMUM_STRING_BYTES on a failed operation. Note that MAXIMUM_STRING_BYTES, as an index, will always either be unused or contain the null terminator, never an actual member of the string.
 lstrIndex lstrFindChar(lString*, char);
 
-//Find the first instance of a given string in the lString. Returns the index of the start of the matching string, or MAXIMUM_STRING_LENGTH on a failed operation (including cases where the input string is empty).
+//Find the first instance of a given string in the lString. Returns the index of the start of the matching string, or MAXIMUM_STRING_BYTES on a failed operation (including cases where the input string is empty).
 lstrIndex lstrFindString(lString*, char*);
 
 
-//Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_LENGTH if the operation fails (but not if the operation simply makes no replacements).
+//Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
 lstrLength lstrReplaceChar(lString*, char, char);
 
-//Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_LENGTH if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
+//Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
 lstrLength lstrReplaceString(lString*, char*, char*);
 
 
