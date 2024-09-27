@@ -52,10 +52,10 @@ arrayList* newLenArrayList(eSize, listLength);
 arrayList* newArrayList(eSize);
 
 //Create a new blank (zeroed out) ArrayList with the specified size and specified initial length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
-arrayList* newLenBlankList(eSize, listLength);
+arrayList* newLenBlankArrayList(eSize, listLength);
 
 //Create a new blank (zeroed out) ArrayList with the specified size and default initial length
-arrayList* newBlankList(eSize);
+arrayList* newBlankArrayList(eSize);
 
 
 //Get a pointer to the head of an arrayList dynamically. Users should never store the head pointer statically.

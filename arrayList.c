@@ -3,6 +3,8 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+
 //True if the given size and allocatedLength would result in an unsafe list length (i.e., larger than MAXIMUM_LIST_BYTES)
 #define unsafeLength(size, allocatedLength) (unsigned __int128) size * allocatedLength > MAXIMUM_LIST_BYTES
 
@@ -61,7 +63,7 @@ arrayList* newArrayList(eSize size){
 }
 
 //Create a new blank (zeroed out) ArrayList with the specified size and specified initial length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
-arrayList* newLenBlankList(eSize size, listLength allocatedLength){
+arrayList* newLenBlankArrayList(eSize size, listLength allocatedLength){
     arrayList* list = newLenArrayList(size, allocatedLength);
     if(list==NULL) return NULL;
     zeroList(list);
@@ -69,8 +71,8 @@ arrayList* newLenBlankList(eSize size, listLength allocatedLength){
 }
 
 //Create a new blank (zeroed out) ArrayList with the specified size and default initial length
-arrayList* newBlankList(eSize size){
-    return newLenBlankList(size, (listLength) DEFAULT_INITIAL_LENGTH);
+arrayList* newBlankArrayList(eSize size){
+    return newLenBlankArrayList(size, (listLength) DEFAULT_INITIAL_LENGTH);
 }
 
 
@@ -136,7 +138,7 @@ listLength expandList(arrayList* list){
     listLength curAlloc = list->allocatedLength;
 
     //Now, compute the doubled allocated size
-    listLength newAlloc = curAlloc*2;
+    listLength newAlloc = curAlloc * 2;
 
     //If the new size is unsafe, then reduce the size to the maximum safe size for this list
     if(unsafeLength(list->size, newAlloc)) newAlloc = maxSafeLength(list->size);
@@ -153,6 +155,9 @@ listLength expandList(arrayList* list){
 
     //Free the old allocated memory
     free(list->head);
+
+    //Update allocatedLength
+    list->allocatedLength = newAlloc;
     
     //Redirect the list's head pointer to the new allocated memory
     list->head = newHead;
@@ -242,7 +247,7 @@ void* addManyAtIndex(arrayList* list, listIndex index, void* elements, listLengt
     //Check index and list. Index must fall within [0, length of list].
     if(index > list->length || count < 1) return NULL;
 
-    //If the index is just past the end of the list, call addToEnd instead.
+    //If the index is just past the end of the list, call addToManyEnd instead.
     if(index == list->length) return addManyToEnd(list, elements, count);
 
     //Expand list if necessary until the list is long enough or we run out of memory
