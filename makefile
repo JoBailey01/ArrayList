@@ -4,8 +4,11 @@
 CCFlags=-Wall -Werror -std=c17 -m64 -g
 CC=gcc
 
-all: arrayList.o test.o
+all: arrayList.o test.o listString.o
 	$(CC) $(CCFlags) -o test $^
+
+listString.o: listString.c listString.h
+	$(CC) $(CCFlags) -c $^
 
 arrayList.o: arrayList.c arrayList.h
 	$(CC) $(CCFlags) -c $^
