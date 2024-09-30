@@ -24,9 +24,6 @@ typedef struct listString {
 } lString;
 
 
-//Set every non-terminating character in the string (including unused ones) to a character constant
-void setLString(lString*, char);
-
 //Set all characters in a lString to \0 (including unused ones and the terminator)
 void nullLString(lString*);
 
@@ -136,6 +133,15 @@ lstrLength lstrReplaceString(lString*, char*, char*);
 
 //Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
 lstrLength lstrReplaceAllString(lString*, char*, char*);
+
+
+//For ASCII characters only, return a copy of the string where all alphabetical characters are UPPERCASE. Returns a pointer to the new string, or NULL if the operation fails. The returned string may be empty.
+//This function dynamically allocates memory, and its return value must be freed.
+char* lstrToUpper(lString*);
+
+//For ASCII characters only, return a copy of the string where all alphabetical characters are lowercase. Returns a pointer to the new string, or NULL if the operation fails. The returned string may be empty.
+//This function dynamically allocates memory, and its return value must be freed.
+char* lstrToLower(lString*);
 
 
 //Overwrite the contents of the string with a new string. The new string may be empty. Returns 0 for success, or 1 if the operation fails

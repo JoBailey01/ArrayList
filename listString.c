@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+
 //If the file is compiled with `-D CHECK_NULL`, all functions will check for null lstr input and return an error code (i.e., retVal)
 #ifdef CHECK_NULL
     #define null_check(lstr, retVal) if(lstr==NULL || lstr->head==NULL) return retVal;
@@ -21,6 +23,12 @@ void setLString(lString* lstr, char setConstant){
 void nullLString(lString* lstr){
     void_null_check(lstr);
     memset(lstr->head, '\0', lstr->allocatedLength);
+}
+
+//Set all post-terminator (i.e., unused) characters in a lString to \0
+void nullUnusedLString(lString* lstr){
+    void_null_check(lstr);
+    memset(lstr->head + lstr->length, '\0', lstr->allocatedLength - lstr->length);
 }
 
 //Create a new lString with the specified initial allocated length (including null terminator). All characters are initialised to '\0'. The minimum allowable initial length is 1 to allow for the null terminator.
@@ -65,7 +73,13 @@ lString* newLString(char* str){
     lstrLength len = strlen(str);
     lstrLength toAlloc = len > MAXIMUM_STRING_BYTES - DEFAULT_INITIAL_STRING_LENGTH
         ? MAXIMUM_STRING_BYTES
-        : len + DEFAULT_INITIAL_STRING_LENGTH;
+        : DEFAULT_INITIAL_STRING_LENGTH;
+
+    while(toAlloc < len && toAlloc < MAXIMUM_STRING_BYTES){
+        toAlloc *= 2;
+    }
+
+    if(toAlloc < len && toAlloc < MAXIMUM_STRING_BYTES) toAlloc = MAXIMUM_STRING_BYTES;
 
     //Attempt to allocate a new string
     lString* lstr = newLenLString(toAlloc);
@@ -74,6 +88,10 @@ lString* newLString(char* str){
 
     //Copy the input string into the new string
     strcpy(lstr->head, str);
+    //memcpy(lstr->head, str, len);
+
+    //Update string length
+    lstr->length = len;
 
     return lstr;
 }
@@ -485,7 +503,7 @@ lstrIndex lstrFindChar(lString* lstr, char c){
     null_check(lstr, MAXIMUM_STRING_BYTES);
 
     //Iterate over the string
-    for(int i = 0;i < lstr->length;i++){
+    for(lstrIndex i = 0;i < lstr->length;i++){
         if(lstr->head[i] == c) return i;
     }
 
@@ -503,8 +521,8 @@ lstrIndex lstrFindString(lString* lstr, char* str){
     if(len > lstr->length || len < 1) return MAXIMUM_STRING_BYTES;
 
     //Search lstr for str
-    for(int i = 0;i <= lstr->length - len;i++){
-        for(int j = 0;j < len;j++){
+    for(lstrIndex i = 0;i <= lstr->length - len;i++){
+        for(lstrIndex j = 0;j < len;j++){
             if(lstr->head[i + j] != str[j]) break;
             else if(j == len-1) return i;
         }
@@ -519,7 +537,7 @@ lstrLength lstrReplaceChar(lString* lstr, char old, char new){
     null_check(lstr, MAXIMUM_STRING_BYTES);
 
     //Iterate over the string and replace the first instance of old with new
-    for(int i = 0;i < lstr->length;i++){
+    for(lstrIndex i = 0;i < lstr->length;i++){
         if(lstr->head[i] == old){
             lstr->head[i] = new;
             return 1;
@@ -533,9 +551,12 @@ lstrLength lstrReplaceChar(lString* lstr, char old, char new){
 lstrLength lstrReplaceAllChar(lString* lstr, char old, char new){
     null_check(lstr, MAXIMUM_STRING_BYTES);
 
+    //Ignore redundant replacement
+    if(old == new) return 0;
+
     //Iterate over the string and replace all instances of old with new
     lstrLength replaced = 0;
-    for(int i = 0;i < lstr->length;i++){
+    for(lstrIndex i = 0;i < lstr->length;i++){
         if(lstr->head[i] == old){
             lstr->head[i] = new;
             replaced++;
@@ -613,13 +634,13 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
     //Make a copy of the original lString. We will perform operations on this new string.
     lString* copy = newLString(lstr->head);
 
-    //Find the first instance of the old string, if applicable
-    lstrIndex index = lstrFindString(copy, old);
+    //Find (as a pointer) the first instance of the old string, if applicable
+    char* indexAddr = strstr(copy->head, old);
 
     //If the old string is even present, find it
-    while(index != MAXIMUM_STRING_BYTES){
+    while(indexAddr != NULL){
         //Compute useful values
-        char* indexAddr = copy->head + index;
+        lstrIndex index = (lstrIndex) (indexAddr - copy->head);
         lstrLength laterBytes = copy->length + 1 - (index + oldLen);
 
         //Replace strings, with possible string expansion
@@ -634,19 +655,23 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
 
             //Otherwise, skip extraneous remaining steps
             replaced++;
-            index = lstrFindString(copy, old);
+            
+            //Search forward for the old string
+            indexAddr = strstr(indexAddr, old);
             continue;
 
         } else if(newLen > oldLen){
             //Allocate new space as needed
             while(copy->allocatedLength - (copy->length + 1) < newLen - oldLen){
-                lstrLength oldLen = copy->allocatedLength;
-                if(expandLString(copy) <= oldLen){
+                lstrLength oldAllocLen = copy->allocatedLength;
+                if(expandLString(copy) <= oldAllocLen){
                     //If we ran out of space, free everything and return the error code
                     freeLString(copy);
                     return MAXIMUM_STRING_BYTES;
                 }
             }
+            //Move indexAddr to the corresponding location in the new string
+            indexAddr = copy->head + index;
             
             //Update string length
             copy->length += (newLen - oldLen);
@@ -656,14 +681,17 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
             copy->length -= (oldLen - newLen);
         }
 
-        //Move up all bytes that fall after the old string
+        //Move up/back all bytes that fall after the old string
         memmove(indexAddr + newLen, indexAddr + oldLen, laterBytes);
 
         //Copy the new string into position
         memmove(indexAddr, new, newLen);
 
         replaced++;
-        index = lstrFindString(copy, old);
+
+        //Search for the old string, starting from the end of the area we have already searched
+        //This is necessary for overlapping new/old strings, such as replacing "." with ".."
+        indexAddr = strstr(indexAddr + newLen, old);
     }
 
     //At this point, we have performed all the replacements, and the copy has all of the right data. Overwrite the original.
@@ -673,6 +701,51 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
     freeLString(copy);
 
     return replaced;
+}
+
+
+//For ASCII characters only, return a copy of the string where all alphabetical characters are UPPERCASE. Returns a pointer to the new string, or NULL if the operation fails. The returned string may be empty.
+//This function dynamically allocates memory, and its return value must be freed.
+char* lstrToUpper(lString* lstr){
+    null_check(lstr, NULL);
+
+    //Make a copy of the string
+    char* copy = malloc(lstr->length + 1);
+    strcpy(copy, lstr->head);
+
+    //Do not perform unnecessary loop operations
+    if(lstr->length < 1) return copy;
+
+    //Iterate over the string and modify characters appropriately
+    for(lstrLength i = 0;i < lstr->length;i++){
+        if(copy[i] >= 'a' && copy[i] <= 'z'){
+            copy[i] -= 32; //Those ASCII guys might've ignored non-English languages, but making 'a' - 'A' = 32 was ingenious.
+        }
+    }
+
+    return copy;
+}
+
+//For ASCII characters only, return a copy of the string where all alphabetical characters are lowercase. Returns a pointer to the new string, or NULL if the operation fails. The returned string may be empty.
+//This function dynamically allocates memory, and its return value must be freed.
+char* lstrToLower(lString* lstr){
+    null_check(lstr, NULL);
+
+    //Make a copy of the string
+    char* copy = malloc(lstr->length + 1);
+    strcpy(copy, lstr->head);
+
+    //Do not perform unnecessary loop operations
+    if(lstr->length < 1) return copy;
+
+    //Iterate over the string and modify characters appropriately
+    for(lstrLength i = 0;i < lstr->length;i++){
+        if(copy[i] >= 'A' && copy[i] <= 'Z'){
+            copy[i] += 32;
+        }
+    }
+
+    return copy;
 }
 
 
@@ -693,16 +766,19 @@ int lstrOverwrite(lString* lstr, char* str){
     if(len > 0){
         //Using memmove lets the user overwrite the whole original string with the end of the original string
         memmove(lstr->head, str, len);
-
-        //Set the rest of the string to null
-        memset(lstr->head + len, '\0', lstr->allocatedLength - len);
     }
+
+    //Set the rest of the string to null
+    memset(lstr->head + len, '\0', lstr->allocatedLength - len);
+
+    //Update string length
+    lstr->length = len;
 
     return 0;
 }
 
 //Return a reversed copy of the string. Returns NULL if the operation fails (including cases where the original string is empty).
-//This function dynamically allocates memory, and its return value must be freed
+//This function dynamically allocates memory, and its return value must be freed.
 char* lstrReverse(lString* lstr){
     null_check(lstr, NULL);
 
