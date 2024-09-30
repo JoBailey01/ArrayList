@@ -20,20 +20,20 @@
 
 
 //Set all bytes in an ArrayList to a set constant (including unused bytes)
-void setList(arrayList* list, int setConstant){
+void alSetList(arrayList* list, int setConstant){
     void_null_check(list);
     memset(list->head, setConstant, (unsigned long) list->size * list->allocatedLength);
 }
 
 //Set all bytes in an ArrayList to 0 (including unused bytes)
-void zeroList(arrayList* list){
+void alSetListNull(arrayList* list){
     void_null_check(list);
-    setList(list, 0);
+    alSetList(list, 0);
 }
 
 
 //Create a new ArrayList with the specified element size AND specified initial allocated length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
-arrayList* newLenArrayList(eSize size, listLength allocatedLength){
+arrayList* alNewLenArrayList(eSize size, listLength allocatedLength){
     #ifndef NO_SAFETY
     //Ensure the specified length is safe
     if(unsafeLength(size, allocatedLength)) return NULL;
@@ -64,51 +64,51 @@ arrayList* newLenArrayList(eSize size, listLength allocatedLength){
 }
 
 //Create a new ArrayList with the specified element size and default initial length
-arrayList* newArrayList(eSize size){
-    return newLenArrayList(size, (listLength) DEFAULT_INITIAL_LENGTH);
+arrayList* alNewArrayList(eSize size){
+    return alNewLenArrayList(size, (listLength) DEFAULT_INITIAL_LENGTH);
 }
 
 //Create a new blank (zeroed out) ArrayList with the specified size and specified initial length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
-arrayList* newLenBlankArrayList(eSize size, listLength allocatedLength){
-    arrayList* list = newLenArrayList(size, allocatedLength);
+arrayList* alNewLenBlankArrayList(eSize size, listLength allocatedLength){
+    arrayList* list = alNewLenArrayList(size, allocatedLength);
     if(list==NULL) return NULL;
-    zeroList(list);
+    alSetListNull(list);
     return list;
 }
 
 //Create a new blank (zeroed out) ArrayList with the specified size and default initial length
-arrayList* newBlankArrayList(eSize size){
-    return newLenBlankArrayList(size, (listLength) DEFAULT_INITIAL_LENGTH);
+arrayList* alNewBlankArrayList(eSize size){
+    return alNewLenBlankArrayList(size, (listLength) DEFAULT_INITIAL_LENGTH);
 }
 
 
 //Get a pointer to the head of an arrayList dynamically. Users should never store the head pointer statically.
-void* getListHead(arrayList* list){
+void* alGetListHead(arrayList* list){
     null_check(list, NULL);
     return list->head;
 }
 
 //Get the length of the list, in elements
-listLength getListLength(arrayList* list){
+listLength alGetListLength(arrayList* list){
     null_check(list, 0);
     return list->length;
 }
 
 //Compute the actual size of the USED arrayList, in bytes. The list will always be smaller than MAXIMUM_LIST_BYTES.
-unsigned long getListSize(arrayList* list){
+unsigned long alGetListSize(arrayList* list){
     null_check(list, 0);
     return list->size * list->length;
 }
 
 //Compute the actual size of the ALLOCATED arrayList, in bytes. The list will always be smaller than MAXIMUM_LIST_BYTES.
-unsigned long getAllocatedListSize(arrayList* list){
+unsigned long alGetAllocatedListSize(arrayList* list){
     null_check(list, 0);
     return list->size * list->allocatedLength;
 }
 
 
 //Get an element in the arrayList by index. Returns a pointer to the element, or NULL for invalid inputs (blank list, element out of bounds, etc.).
-void* getByIndex(arrayList* list, listIndex index){
+void* alGetElement(arrayList* list, listIndex index){
     null_check(list, NULL);
 
     #ifndef NO_SAFETY
@@ -122,20 +122,20 @@ void* getByIndex(arrayList* list, listIndex index){
 }
 
 //Get the last element in the arrayList. Returns a pointer to the element, or NULL for invalid inputs (blank list, element out of bounds, etc.).
-void* getLast(arrayList* list){
+void* alGetLast(arrayList* list){
     null_check(list, NULL);
 
     #ifndef NO_SAFETY
     if(list->length < 1) return NULL;
     #endif
 
-    return getByIndex(list, list->length - 1);
+    return alGetElement(list, list->length - 1);
 }
 
 //Get the first element in the arrayList. Returns a pointer to the element, or NULL for invalid inputs (blank list, element out of bounds, etc.).
-void* getFirst(arrayList* list){
+void* alGetFirst(arrayList* list){
     null_check(list, NULL);
-    return getByIndex(list, 0);
+    return alGetElement(list, 0);
 }
 
 
@@ -163,8 +163,8 @@ listLength expandList(arrayList* list){
     memset(newHead, 0, list->size * newAlloc);
 
     //Copy all data from the old list memory to the new list memory
-    //memmove(newHead, list->head, getAllocatedListSize(list)); //This is only necessary if the memory areas could overlap, which should be impossible in this case
-    memcpy(newHead, list->head, getAllocatedListSize(list));
+    //memmove(newHead, list->head, alGetAllocatedListSize(list)); //This is only necessary if the memory areas could overlap, which should be impossible in this case
+    memcpy(newHead, list->head, alGetAllocatedListSize(list));
 
     //Free the old allocated memory
     free(list->head);
@@ -181,7 +181,7 @@ listLength expandList(arrayList* list){
 
 //Add an element to an arbitrary location in an arrayList. Takes a pointer to the new element (which is copied into the list) and the index for that element. All later elements are shifted up.
 //Returns a pointer to the element in the list, or NULL if the attempt failed (either because the list is too large or because the list is more than one element shorter than the specified insertion index)
-void* addAtIndex(arrayList* list, listIndex index, void* element){
+void* alInsert(arrayList* list, listIndex index, void* element){
     null_check(list, NULL);
 
     #ifndef NO_SAFETY
@@ -189,8 +189,8 @@ void* addAtIndex(arrayList* list, listIndex index, void* element){
     if(index > list->length) return NULL;
     #endif
 
-    //If the index is just past the end of the list, call addToEnd instead.
-    if(index == list->length) return addToEnd(list, element);
+    //If the index is just past the end of the list, call alAppend instead.
+    if(index == list->length) return alAppend(list, element);
 
     //Expand list if necessary
     if(list->length >= list->allocatedLength){
@@ -221,7 +221,7 @@ void* addAtIndex(arrayList* list, listIndex index, void* element){
 
 //Add an element to the end of an arrayList. Takes a pointer to the new element, which is copied into the list.
 //Returns a pointer to the element in the list, or NULL if the attempt failed (usually because the list is too large).
-void* addToEnd(arrayList* list, void* element){
+void* alAppend(arrayList* list, void* element){
     null_check(list, NULL);
 
     //Expand list if necessary
@@ -247,8 +247,8 @@ void* addToEnd(arrayList* list, void* element){
 
 //Add an element to the beginning of an arrayList. Takes a pointer to the new element, which is copied into the list.
 //Returns a pointer to the element in the list, or NULL if the attempt failed (usually because the list is too large).
-void* addToBeginning(arrayList* list, void* element){
-    return addAtIndex(list, 0, element);
+void* alPrepend(arrayList* list, void* element){
+    return alInsert(list, 0, element);
 }
 
 
@@ -256,7 +256,7 @@ void* addToBeginning(arrayList* list, void* element){
 //Returns a pointer to the beginning of the new elements in the list, or NULL if the operation failed (including cases where count < 1)
 
 //Insert <count> elements at index <index> in the list, copying memory from <elements> to <elements + count - 1>
-void* addManyAtIndex(arrayList* list, listIndex index, void* elements, listLength count){
+void* alInsertMany(arrayList* list, listIndex index, void* elements, listLength count){
     null_check(list, NULL);
 
     #ifndef NO_SAFETY
@@ -265,7 +265,7 @@ void* addManyAtIndex(arrayList* list, listIndex index, void* elements, listLengt
     #endif
 
     //If the index is just past the end of the list, call addToManyEnd instead.
-    if(index == list->length) return addManyToEnd(list, elements, count);
+    if(index == list->length) return alAppendMany(list, elements, count);
 
     //Expand list if necessary until the list is long enough or we run out of memory
     while(list->allocatedLength - list->length < count){
@@ -295,7 +295,7 @@ void* addManyAtIndex(arrayList* list, listIndex index, void* elements, listLengt
 }
 
 //Insert <count> elements at the end of the list, copying memory from <elements> to <elements + count - 1>
-void* addManyToEnd(arrayList* list, void* elements, listLength count){
+void* alAppendMany(arrayList* list, void* elements, listLength count){
     null_check(list, NULL);
 
     if(count < 1) return NULL;
@@ -321,13 +321,13 @@ void* addManyToEnd(arrayList* list, void* elements, listLength count){
 }
 
 //Insert <count> elements at the beginning of the list, copying memory from <elements> to <elements + count - 1>
-void* addManyToBeginning(arrayList* list, void* elements, listLength count){
-    return addManyAtIndex(list, 0, elements, count);
+void* alPrependMany(arrayList* list, void* elements, listLength count){
+    return alInsertMany(list, 0, elements, count);
 }
 
 
 //Remove an element from the arrayList by index. Does not return the element. Returns 0 for success, or 1 if the provided index is out of bounds or the list is bad.
-int removeAtIndex(arrayList* list, listIndex index){
+int alRemove(arrayList* list, listIndex index){
     null_check(list, 1);
 
     #ifndef NO_SAFETY
@@ -361,7 +361,7 @@ int removeAtIndex(arrayList* list, listIndex index){
 
 //Remove the last element in the arrayList. Does not return the element. Returns 0 for success, or 1 if the list has no elements or the list is bad.
 //The last element is not overwritten; the array is simply shortened.
-int removeLast(arrayList* list){
+int alRemoveLast(arrayList* list){
     null_check(list, 1);
 
     #ifndef NO_SAFETY
@@ -375,10 +375,10 @@ int removeLast(arrayList* list){
 }
 
 //Remove the first element in the arrayList. Does not return the element. Returns 0 for success, or 1 if the list has no elements or the list is bad.
-int removeFirst(arrayList* list){
+int alRemoveFirst(arrayList* list){
     null_check(list, 1);
 
-    return removeAtIndex(list, 0);
+    return alRemove(list, 0);
 }
 
 
@@ -386,7 +386,7 @@ int removeFirst(arrayList* list){
 //Returns 0 for success, or 1 if the list has too few elements or the list is bad.
 
 //Remove <count> list elements from index <index> to <index + count - 1>
-int removeManyAtIndex(arrayList* list, listIndex index, listLength count){
+int alRemoveMany(arrayList* list, listIndex index, listLength count){
     null_check(list, 1);
 
     #ifndef NO_SAFETY
@@ -420,7 +420,7 @@ int removeManyAtIndex(arrayList* list, listIndex index, listLength count){
 }
 
 //Remove <count> list elements from the end of the list
-int removeManyLast(arrayList* list, listLength count){
+int alRemoveLastMany(arrayList* list, listLength count){
     null_check(list, 1);
 
     #ifndef NO_SAFETY
@@ -434,15 +434,15 @@ int removeManyLast(arrayList* list, listLength count){
 }
 
 //Remove <count> list elements from the start of the list
-int removeManyFirst(arrayList* list, listLength count){
+int alRemoveFirstMany(arrayList* list, listLength count){
     null_check(list, 1);
 
-    return removeManyAtIndex(list, 0, count);
+    return alRemoveMany(list, 0, count);
 }
 
 
 //Destroy and de-allocate an arrayList
-void freeArrayList(arrayList* list){
+void alFreeArrayList(arrayList* list){
     void_null_check(list);
 
     //De-allocate list memory
