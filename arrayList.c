@@ -3,8 +3,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <stdio.h>
-
 //True if the given size and allocatedLength would result in an unsafe list length (i.e., larger than MAXIMUM_LIST_BYTES)
 #define unsafeLength(size, allocatedLength) (unsigned __int128) size * allocatedLength > MAXIMUM_LIST_BYTES
 
@@ -39,6 +37,9 @@ arrayList* newLenArrayList(eSize size, listLength allocatedLength){
     //Ensure the specified length is safe
     if(unsafeLength(size, allocatedLength)) return NULL;
 
+    //Do not allow allocations of size 0
+    if(allocatedLength < 1) allocatedLength = 1;
+
     //Allocate list
     arrayList* list = (arrayList*) malloc(sizeof(arrayList));
 
@@ -52,7 +53,10 @@ arrayList* newLenArrayList(eSize size, listLength allocatedLength){
     //Allocate specified initial allocated length
     list->head = (void*) malloc(size * allocatedLength);
 
-    if(list->head == NULL) return NULL;
+    if(list->head == NULL){
+        free(list);
+        return NULL;
+    }
 
     return list;
 }
@@ -131,14 +135,11 @@ void* getFirst(arrayList* list){
 listLength expandList(arrayList* list){
     null_check(list, 0);
 
-    //Check safety of list
-    if(list == NULL || list->head == NULL) return 0;
-
     //First, get the current allocated length of the list
     listLength curAlloc = list->allocatedLength;
 
     //Now, compute the doubled allocated size
-    listLength newAlloc = curAlloc * 2;
+    listLength newAlloc = curAlloc <= (ULONG_MAX / 2) ? curAlloc * 2 : maxSafeLength(list->size);
 
     //If the new size is unsafe, then reduce the size to the maximum safe size for this list
     if(unsafeLength(list->size, newAlloc)) newAlloc = maxSafeLength(list->size);

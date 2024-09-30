@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
-
 //If the file is compiled with `-D CHECK_NULL`, all functions will check for null lstr input and return an error code (i.e., retVal)
 #ifdef CHECK_NULL
     #define null_check(lstr, retVal) if(lstr==NULL || lstr->head==NULL) return retVal;
