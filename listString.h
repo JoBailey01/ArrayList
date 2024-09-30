@@ -25,29 +25,29 @@ typedef struct listString {
 
 
 //Set all characters in a lString to \0 (including unused ones and the terminator)
-void nullLString(lString*);
+void lstrSetStringNull(lString*);
 
 //Create a new lString with the specified initial allocated length (including null terminator). All characters are initialised to '\0'. The minimum allowable initial length is 1 to allow for the null terminator.
 //Returns NULL if allocation failed or the specified initial length is too small.
-lString* newLenLString(lstrLength);
+lString* lstrNewLenString(lstrLength);
 
 //Create a new lstring that contains a copy of the input string. If the input string is blank, then so is the new string.
 //Returns NULL if allocation failed.
-lString* newLString(char*);
+lString* lstrNewString(char*);
 
 //Create a new lstring with the default initial allocated length (including null terminator). All characters are initialised to '\0'
 //Returns NULL if allocation failed
-lString* newBlankLString();
+lString* lstrNewBlankString();
 
 
 //Get a pointer to the standard C string (i.e., the head of the string), even if the string is empty
-char* getLStringHead(lString*);
+char* lstrGetString(lString*);
 
 //Get the length of the string (excluding null terminator) in bytes
-lstrLength getLStringLength(lString*);
+lstrLength lstrGetLength(lString*);
 
 //Get the actual allocated size of the string, including the null terminator, in bytes
-lstrLength getAllocatedLStringSize(lString*);
+lstrLength lstrGetAllocatedSize(lString*);
 
 
 //Get a pointer to an arbitrary character in the string by index. Returns NULL for an invalid string, an empty string, or an invalid index
@@ -126,13 +126,13 @@ lstrIndex lstrFindString(lString*, char*);
 lstrLength lstrReplaceChar(lString*, char, char);
 
 //Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
-lstrLength lstrReplaceAllChar(lString*, char, char);
+lstrLength lstrReplaceCharAll(lString*, char, char);
 
 //Replace the first instance of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
 lstrLength lstrReplaceString(lString*, char*, char*);
 
 //Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
-lstrLength lstrReplaceAllString(lString*, char*, char*);
+lstrLength lstrReplaceStringAll(lString*, char*, char*);
 
 
 //For ASCII characters only, return a copy of the string where all alphabetical characters are UPPERCASE. Returns a pointer to the new string, or NULL if the operation fails. The returned string may be empty.
@@ -153,4 +153,4 @@ char* lstrReverse(lString*);
 
 
 //Destroy and de-allocate the lString
-void freeLString(lString*);
+void lstrFreeString(lString*);

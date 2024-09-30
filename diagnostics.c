@@ -21,11 +21,11 @@ void alDiagnostics(arrayList* list){
 
 void lstrDiagnostics(lString* lstr){
     printf("Length: %ld\nAllocated: %ld\nHead: %p\nFirst: %p\nLast: %p\n",
-        getLStringLength(lstr), getAllocatedLStringSize(lstr), getLStringHead(lstr), lstrGetFirst(lstr), lstrGetLast(lstr)
+        lstrGetLength(lstr), lstrGetAllocatedSize(lstr), lstrGetString(lstr), lstrGetFirst(lstr), lstrGetLast(lstr)
         );
     
     printf("Contents:\n");
-    for(int i = 0;i < getAllocatedLStringSize(lstr);i++){
+    for(int i = 0;i < lstrGetAllocatedSize(lstr);i++){
         if(i == lstr->length) printf("||");
         printf("%c", lstr->head[i] == '\0' ? '~' : lstr->head[i]);
     }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-//If the file is compiled with -D NO_SAFETY, all initial safety checks on function arguments will be ignored. This saves time but may allow otherwise impossible and hard-to-debug segfaults and similar issues.
+//If the file is compiled with `-D NO_SAFETY`, all initial safety checks on function arguments will be ignored. This saves time but may allow otherwise impossible and hard-to-debug segfaults and similar issues.
 #ifndef NO_SAFETY
     #define null_check(lstr, retVal) if(lstr==NULL || lstr->head==NULL) return retVal;
     #define void_null_check(lstr) if(lstr==NULL || lstr->head==NULL) return;
@@ -13,26 +13,26 @@
 
 
 //Set every non-terminating character in the string (including unused ones) to a character constant
-void setLString(lString* lstr, char setConstant){
+void lstrSetString(lString* lstr, char setConstant){
     void_null_check(lstr);
     memset(lstr->head, setConstant, lstr->allocatedLength - 1);
 }
 
 //Set all characters in a lString to \0 (including unused ones and the null terminator)
-void nullLString(lString* lstr){
+void lstrSetStringNull(lString* lstr){
     void_null_check(lstr);
     memset(lstr->head, '\0', lstr->allocatedLength);
 }
 
 //Set all post-terminator (i.e., unused) characters in a lString to \0
-void nullUnusedLString(lString* lstr){
+void lstrSetStringEndNull(lString* lstr){
     void_null_check(lstr);
     memset(lstr->head + lstr->length, '\0', lstr->allocatedLength - lstr->length);
 }
 
 //Create a new lString with the specified initial allocated length (including null terminator). All characters are initialised to '\0'. The minimum allowable initial length is 1 to allow for the null terminator.
 //Returns NULL if allocation failed or the specified initial length is too small.
-lString* newLenLString(lstrLength allocatedLength){
+lString* lstrNewLenString(lstrLength allocatedLength){
     #ifndef NO_SAFETY
     //Check input length
     if(allocatedLength < 1) return NULL;
@@ -58,14 +58,14 @@ lString* newLenLString(lstrLength allocatedLength){
     }
 
     //Zero out the string. This also effectively null-terminates the string.
-    nullLString(lstr);
+    lstrSetStringNull(lstr);
 
     return lstr;
 }
 
 //Create a new lstring that contains a copy of the input string. If the input string is blank, then so is the new string.
 //Returns NULL if allocation failed.
-lString* newLString(char* str){
+lString* lstrNewString(char* str){
     #ifndef NO_SAFETY
     if(str==NULL) return NULL;
     #endif
@@ -83,7 +83,7 @@ lString* newLString(char* str){
     if(toAlloc < len && toAlloc < MAXIMUM_STRING_BYTES) toAlloc = MAXIMUM_STRING_BYTES;
 
     //Attempt to allocate a new string
-    lString* lstr = newLenLString(toAlloc);
+    lString* lstr = lstrNewLenString(toAlloc);
 
     if(lstr==NULL) return NULL;
 
@@ -99,25 +99,25 @@ lString* newLString(char* str){
 
 //Create a new lstring with the default initial allocated length (including null terminator). All characters are initialised to '\0'
 //Returns NULL if allocation failed
-lString* newBlankLString(){
-    return newLenLString(DEFAULT_INITIAL_STRING_LENGTH);
+lString* lstrNewBlankString(){
+    return lstrNewLenString(DEFAULT_INITIAL_STRING_LENGTH);
 }
 
 
 //Get a pointer to the standard C string (i.e., the head of the string), even if the string is empty. May return NULL if the specified lString is NULL and CHECK_NULL is enabled.
-char* getLStringHead(lString* lstr){
+char* lstrGetString(lString* lstr){
     null_check(lstr, NULL);
     return lstr->head;
 }
 
 //Get the length of the string (excluding null terminator) in bytes. May return MAXIMUM_STRING_BYTES if the specified lString is NULL and CHECK_NULL is enabled.
-lstrLength getLStringLength(lString* lstr){
+lstrLength lstrGetLength(lString* lstr){
     null_check(lstr, MAXIMUM_STRING_BYTES);
     return lstr->length;
 }
 
 //Get the actual allocated size of the string, including the null terminator, in bytes
-lstrLength getAllocatedLStringSize(lString* lstr){
+lstrLength lstrGetAllocatedSize(lString* lstr){
     null_check(lstr, 0);
     return lstr->allocatedLength;
 }
@@ -575,7 +575,7 @@ lstrLength lstrReplaceChar(lString* lstr, char old, char new){
 }
 
 //Replace all instances of one character in the string with a new character. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails (but not if the operation simply makes no replacements).
-lstrLength lstrReplaceAllChar(lString* lstr, char old, char new){
+lstrLength lstrReplaceCharAll(lString* lstr, char old, char new){
     null_check(lstr, MAXIMUM_STRING_BYTES);
 
     //Ignore redundant replacement
@@ -645,7 +645,7 @@ lstrLength lstrReplaceString(lString* lstr, char* old, char* new){
 }
 
 //Replace all instances of one substring with a new substring. Returns the number of replacements, which may be 0. Returns MAXIMUM_STRING_BYTES if the operation fails. If the replacements would cause the string to exceed the maximum length, the operation fails and the original string is not altered.
-lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
+lstrLength lstrReplaceStringAll(lString* lstr, char* old, char* new){
     null_check(lstr, MAXIMUM_STRING_BYTES);
 
     //Get string lengths
@@ -659,7 +659,7 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
     lstrLength replaced = 0;
 
     //Make a copy of the original lString. We will perform operations on this new string.
-    lString* copy = newLString(lstr->head);
+    lString* copy = lstrNewString(lstr->head);
 
     //Find (as a pointer) the first instance of the old string, if applicable
     char* indexAddr = strstr(copy->head, old);
@@ -676,7 +676,7 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
 
             //If removal fails, free everything and return an error
             if(rem == 1){
-                freeLString(copy);
+                lstrFreeString(copy);
                 return MAXIMUM_STRING_BYTES;
             }
 
@@ -693,7 +693,7 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
                 lstrLength oldAllocLen = copy->allocatedLength;
                 if(expandLString(copy) <= oldAllocLen){
                     //If we ran out of space, free everything and return the error code
-                    freeLString(copy);
+                    lstrFreeString(copy);
                     return MAXIMUM_STRING_BYTES;
                 }
             }
@@ -725,7 +725,7 @@ lstrLength lstrReplaceAllString(lString* lstr, char* old, char* new){
     lstrOverwrite(lstr, copy->head);
 
     //Delete the copy
-    freeLString(copy);
+    lstrFreeString(copy);
 
     return replaced;
 }
@@ -834,7 +834,7 @@ char* lstrReverse(lString* lstr){
 
 
 //Destroy and de-allocate the lString
-void freeLString(lString* lstr){
+void lstrFreeString(lString* lstr){
     void_null_check(lstr);
     free(lstr->head);
     free(lstr);
