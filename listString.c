@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-//If the file is compiled with `-D CHECK_NULL`, all functions will check for null lstr input and return an error code (i.e., retVal)
-#ifdef CHECK_NULL
+//If the file is compiled with -D NO_SAFETY, all initial safety checks on function arguments will be ignored. This saves time but may allow otherwise impossible and hard-to-debug segfaults and similar issues.
+#ifndef NO_SAFETY
     #define null_check(lstr, retVal) if(lstr==NULL || lstr->head==NULL) return retVal;
     #define void_null_check(lstr) if(lstr==NULL || lstr->head==NULL) return;
 #else
     #define null_check(lstr, retVal)
     #define void_null_check(lstr)
 #endif
+
 
 //Set every non-terminating character in the string (including unused ones) to a character constant
 void setLString(lString* lstr, char setConstant){
@@ -32,10 +33,10 @@ void nullUnusedLString(lString* lstr){
 //Create a new lString with the specified initial allocated length (including null terminator). All characters are initialised to '\0'. The minimum allowable initial length is 1 to allow for the null terminator.
 //Returns NULL if allocation failed or the specified initial length is too small.
 lString* newLenLString(lstrLength allocatedLength){
+    #ifndef NO_SAFETY
     //Check input length
     if(allocatedLength < 1) return NULL;
-
-    null_check(lstr, NULL);
+    #endif
 
     //The specified length cannot possibly exceed ULONG_MAX (i.e., MAXIMUM_STRING_BYTES), so we can safely use it
 
@@ -65,7 +66,9 @@ lString* newLenLString(lstrLength allocatedLength){
 //Create a new lstring that contains a copy of the input string. If the input string is blank, then so is the new string.
 //Returns NULL if allocation failed.
 lString* newLString(char* str){
+    #ifndef NO_SAFETY
     if(str==NULL) return NULL;
+    #endif
 
     //Determine the amount of memory to allocate
     lstrLength len = strlen(str);
@@ -129,14 +132,22 @@ char* lstrGetChar(lString* lstr, lstrIndex index){
 //Get a pointer to the last character (before the null terminator) in the string. Returns NULL for an invalid or empty string.
 char* lstrGetLast(lString* lstr){
     null_check(lstr, NULL);
+
+    #ifndef NO_SAFETY
     if(lstr->length < 1) return NULL;
+    #endif
+
     return lstr->head + lstr->length - 1;
 }
 
 //Get a pointer to the first character in the string. Returns NULL for an invalid or empty string.
 char* lstrGetFirst(lString* lstr){
     null_check(lstr, NULL);
+
+    #ifndef NO_SAFETY
     if(lstr->length < 1) return NULL;
+    #endif
+
     return lstr->head;
 }
 
@@ -144,7 +155,10 @@ char* lstrGetFirst(lString* lstr){
 //This function dynamically allocates memory, and its return value must be freed.
 char* lstrGetSubstr(lString* lstr, lstrIndex index, lstrLength length){
     null_check(lstr, NULL);
+
+    #ifndef NO_SAFETY
     if(index >= lstr->length || length < 1) return NULL;
+    #endif
 
     //Determine the actual allowable length of the substring
     if(length > MAXIMUM_STRING_BYTES - 1 - index) length = MAXIMUM_STRING_BYTES - 1 - index;
@@ -204,8 +218,10 @@ lstrLength expandLString(lString* lstr){
 char* lstrInsertChar(lString* lstr, lstrIndex index, char c){
     null_check(lstr, NULL);
 
+    #ifndef NO_SAFETY
     //Check index to ensure it falls within [0, lstr->length]
     if(index > lstr->length) return NULL;
+    #endif
 
     //If the insertion index falls just after the end of the list, append the char instead
     if(index == lstr->length) return lstrAppendChar(lstr, c);
@@ -233,8 +249,10 @@ char* lstrInsertChar(lString* lstr, lstrIndex index, char c){
 char* lstrInsertString(lString* lstr, lstrIndex index, char* str){
     null_check(lstr, NULL);
 
+    #ifndef NO_SAFETY
     //Check index to ensure it falls within [0, lstr->length]
     if(index > lstr->length) return NULL;
+    #endif
 
     //Get length of str. Do nothing if the string is empty.
     lstrLength len = strlen(str);
@@ -268,12 +286,15 @@ char* lstrInsertString(lString* lstr, lstrIndex index, char* str){
 char* lstrInsertPartial(lString* lstr, lstrIndex index, char* str, unsigned long len){
     null_check(lstr, NULL);
 
+    #ifndef NO_SAFETY
     //Check index to ensure it falls within [0, lstr->length]
     if(index > lstr->length) return NULL;
+    #endif
 
     //Get real length of str. Do nothing if the input fragment is empty.
     lstrLength realLen = strlen(str);
     if(realLen < len) len = realLen;
+
     if(len < 1) return NULL;
 
     //If the insertion index falls just after the end of the list, append the fragment instead
@@ -329,7 +350,7 @@ char* lstrAppendChar(lString* lstr, char c){
 char* lstrAppendString(lString* lstr, char* str){
     null_check(lstr, NULL);
 
-    //Get real length of str. Do nothing if the string is empty.
+    //Get length of str. Do nothing if the string is empty.
     lstrLength len = strlen(str);
     if(len < 1) return NULL;
 
@@ -406,8 +427,10 @@ char* lstrPrependPartial(lString* lstr, char* str, unsigned long len){
 int lstrRemoveChar(lString* lstr, lstrIndex index){
     null_check(lstr, 1);
 
+    #ifndef NO_SAFETY
     //Do not remove out of bounds or from an empty list
     if(index >= lstr->length) return 1;
+    #endif
 
     //To remove the final element, simply call removeLastChar
     if(index == lstr->length - 1) return lstrRemoveLastChar(lstr);
@@ -428,8 +451,10 @@ int lstrRemoveChar(lString* lstr, lstrIndex index){
 int lstrRemoveLastChar(lString* lstr){
     null_check(lstr, 1);
 
+    #ifndef NO_SAFETY
     //Do not remove from an empty string
     if(lstr->length < 1) return 1;
+    #endif
 
     //Get the last character's address
     char* removeAddr = lstr->head + lstr->length - 1;
@@ -453,8 +478,10 @@ int lstrRemoveFirstChar(lString* lstr){
 int lstrRemoveString(lString* lstr, lstrIndex index, lstrLength len){
     null_check(lstr, 1);
 
+    #ifndef NO_SAFETY
     //Make sure index and len are valid
     if(index + len > lstr->length || len < 1) return 1;
+    #endif
 
     //Call removeLastString if applicable
     if(index + len == lstr->length && index > 0) return lstrRemoveLastString(lstr, len);
@@ -478,8 +505,10 @@ int lstrRemoveString(lString* lstr, lstrIndex index, lstrLength len){
 int lstrRemoveLastString(lString* lstr, lstrLength len){
     null_check(lstr, 1);
 
+    #ifndef NO_SAFETY
     //Ensure len is valid
     if(len > lstr->length || len < 1) return 1;
+    #endif
 
     //Overwrite the last <len> characters with '\0'
     memset(lstr->head + lstr->length - len, '\0', len);
@@ -780,7 +809,9 @@ int lstrOverwrite(lString* lstr, char* str){
 char* lstrReverse(lString* lstr){
     null_check(lstr, NULL);
 
+    #ifndef NO_SAFETY
     if(lstr->length < 1) return NULL;
+    #endif
 
     //Allocate the new string
     char* output = (char*) malloc(lstr->length + 1);

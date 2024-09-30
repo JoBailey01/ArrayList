@@ -9,8 +9,8 @@
 //The maximum number of elements that a list with a given element size can safely support (within the bounds of MAXIMUM_LIST_BYTES)
 #define maxSafeLength(size) (listLength) MAXIMUM_LIST_BYTES/size
 
-//If the file is compiled with `-D CHECK_NULL`, all functions will check for null arrayList input and return an error code (i.e., retVal)
-#ifdef CHECK_NULL
+//If the file is compiled with `-D NO_SAFETY`, all initial safety checks on function arguments will be ignored. This saves time but may allow otherwise impossible and hard-to-debug segfaults and similar issues.
+#ifndef NO_SAFETY
     #define null_check(list, retVal) if(list==NULL || list->head==NULL) return retVal;
     #define void_null_check(list) if(list==NULL || list->head==NULL) return;
 #else
@@ -34,8 +34,10 @@ void zeroList(arrayList* list){
 
 //Create a new ArrayList with the specified element size AND specified initial allocated length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
 arrayList* newLenArrayList(eSize size, listLength allocatedLength){
+    #ifndef NO_SAFETY
     //Ensure the specified length is safe
     if(unsafeLength(size, allocatedLength)) return NULL;
+    #endif
 
     //Do not allow allocations of size 0
     if(allocatedLength < 1) allocatedLength = 1;
@@ -108,7 +110,10 @@ unsigned long getAllocatedListSize(arrayList* list){
 //Get an element in the arrayList by index. Returns a pointer to the element, or NULL for invalid inputs (blank list, element out of bounds, etc.).
 void* getByIndex(arrayList* list, listIndex index){
     null_check(list, NULL);
+
+    #ifndef NO_SAFETY
     if(list == NULL || list->head == NULL || index >= list->length) return NULL;
+    #endif
 
     //Avoid unnecessary arithmetic
     if(index == 0) return list->head;
@@ -119,7 +124,11 @@ void* getByIndex(arrayList* list, listIndex index){
 //Get the last element in the arrayList. Returns a pointer to the element, or NULL for invalid inputs (blank list, element out of bounds, etc.).
 void* getLast(arrayList* list){
     null_check(list, NULL);
+
+    #ifndef NO_SAFETY
     if(list->length < 1) return NULL;
+    #endif
+
     return getByIndex(list, list->length - 1);
 }
 
@@ -175,8 +184,10 @@ listLength expandList(arrayList* list){
 void* addAtIndex(arrayList* list, listIndex index, void* element){
     null_check(list, NULL);
 
+    #ifndef NO_SAFETY
     //Check index and list. Index must fall within [0, length of list].
     if(index > list->length) return NULL;
+    #endif
 
     //If the index is just past the end of the list, call addToEnd instead.
     if(index == list->length) return addToEnd(list, element);
@@ -248,8 +259,10 @@ void* addToBeginning(arrayList* list, void* element){
 void* addManyAtIndex(arrayList* list, listIndex index, void* elements, listLength count){
     null_check(list, NULL);
 
+    #ifndef NO_SAFETY
     //Check index and list. Index must fall within [0, length of list].
     if(index > list->length || count < 1) return NULL;
+    #endif
 
     //If the index is just past the end of the list, call addToManyEnd instead.
     if(index == list->length) return addManyToEnd(list, elements, count);
@@ -317,8 +330,10 @@ void* addManyToBeginning(arrayList* list, void* elements, listLength count){
 int removeAtIndex(arrayList* list, listIndex index){
     null_check(list, 1);
 
+    #ifndef NO_SAFETY
     //Do not remove from empty lists and ignore out-of-bounds indices
     if(list->length < 1 || index >= list->length) return 1;
+    #endif
 
     //Handle removal of the final element in the list (do not overwrite element)
     if(index == list->length - 1){
@@ -349,8 +364,10 @@ int removeAtIndex(arrayList* list, listIndex index){
 int removeLast(arrayList* list){
     null_check(list, 1);
 
+    #ifndef NO_SAFETY
     //Do not remove from empty lists
     if(list->length < 1) return 1;
+    #endif
 
     list->length--;
 
@@ -372,8 +389,10 @@ int removeFirst(arrayList* list){
 int removeManyAtIndex(arrayList* list, listIndex index, listLength count){
     null_check(list, 1);
 
+    #ifndef NO_SAFETY
     //Do not over-remove from lists that are too small and ignore out-of-bounds indices
     if(list->length < count || count < 1 || index + count > list->length) return 1;
+    #endif
 
     //If the index and count would remove only elements at the end of the list (possibly including the entire list), simply reduce the list's length
     if(index + count == list->length){
@@ -404,8 +423,10 @@ int removeManyAtIndex(arrayList* list, listIndex index, listLength count){
 int removeManyLast(arrayList* list, listLength count){
     null_check(list, 1);
 
+    #ifndef NO_SAFETY
     //Do not over-remove from lists that are too small and ignore out-of-bounds indices
     if(list->length < count || count < 1) return 1;
+    #endif
 
     //Simply reduce the length (do not overwrite elements)
     list->length -= count;
