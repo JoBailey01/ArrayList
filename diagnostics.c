@@ -1,5 +1,6 @@
 #include "arrayList.h"
 #include "listString.h"
+#include "diagnostics.h"
 #include <stdio.h>
 #include <stdlib.h>
 
