@@ -1,6 +1,5 @@
 #include "arrayList.h"
 #include "listString.h"
-#include "diagnostics.h"
 
 int main(int argc, char** argv){
 
@@ -10,11 +9,11 @@ int main(int argc, char** argv){
 
     lstrFreeString(lstr);
 
-    arrayList list = alNewArrayList(2);
+    arrayList* list = alNewBlankArrayList(2);
 
     char* dummyData = "ABCDEFGHIJKLMNOP";
 
-    alInsertMany(list, dummyData, 9);
+    alInsertMany(list, 0, dummyData, 8);
 
     alDiagnostics(list);
 

@@ -1,7 +1,7 @@
 #include "arrayList.h"
 #include <string.h>
-#include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 //True if the given size and allocatedLength would result in an unsafe list length (i.e., larger than MAXIMUM_LIST_BYTES)
 #define unsafeLength(size, allocatedLength) (unsigned __int128) size * allocatedLength > MAXIMUM_LIST_BYTES
@@ -446,4 +446,21 @@ void alFreeArrayList(arrayList* list){
 
     //De-allocate the list itself
     free(list);
+}
+
+//Print diagnostic information for debugging and development
+void alDiagnostics(arrayList* list){
+    printf("Length: %ld\nBytes Used: %ld\nBytes Allocated: %ld\nHead: %p\nFirst: %p\nLast: %p\n",
+        alGetListLength(list), alGetListSize(list), alGetAllocatedListSize(list), alGetListHead(list), alGetFirst(list), alGetLast(list)
+        );
+
+    printf("Contents:\n");
+    char* temp = (char*) alGetListHead(list);
+    for(int i = 0;i < alGetAllocatedListSize(list);i++){
+        if(i == list->length * list->size) printf("||");
+        printf("%2x", (int) *temp);
+        //printf("%c", (int) *temp);
+        temp++;
+    }
+    printf("\n");
 }

@@ -154,3 +154,6 @@ char* lstrReverse(lString*);
 
 //Destroy and de-allocate the lString
 void lstrFreeString(lString*);
+
+//Print diagnostic information for debugging and development
+void lstrDiagnostics(lString*);

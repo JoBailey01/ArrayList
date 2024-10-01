@@ -126,3 +126,6 @@ int alRemoveFirstMany(arrayList*, alLength);
 
 //Destroy and de-allocate an arrayList
 void alFreeArrayList(arrayList*);
+
+//Print diagnostic information for debugging and development
+void alDiagnostics(arrayList*);

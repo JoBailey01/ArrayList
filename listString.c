@@ -1,6 +1,7 @@
 #include "listString.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 //If the file is compiled with `-D NO_SAFETY`, all initial safety checks on function arguments will be ignored. This saves time but may allow otherwise impossible and hard-to-debug segfaults and similar issues.
 #ifndef NO_SAFETY
@@ -838,4 +839,18 @@ void lstrFreeString(lString* lstr){
     void_null_check(lstr);
     free(lstr->head);
     free(lstr);
+}
+
+//Print diagnostic information for debugging and development
+void lstrDiagnostics(lString* lstr){
+    printf("Length: %ld\nAllocated: %ld\nHead: %p\nFirst: %p\nLast: %p\n",
+        lstrGetLength(lstr), lstrGetAllocatedSize(lstr), lstrGetString(lstr), lstrGetFirst(lstr), lstrGetLast(lstr)
+        );
+    
+    printf("Contents:\n");
+    for(int i = 0;i < lstrGetAllocatedSize(lstr);i++){
+        if(i == lstr->length) printf("||");
+        printf("%c", lstr->head[i] == '\0' ? '~' : lstr->head[i]);
+    }
+    printf("\n");
 }
