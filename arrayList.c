@@ -32,7 +32,7 @@ void alSetListNull(arrayList* list){
 }
 
 
-//Create a new ArrayList with the specified element size AND specified initial allocated length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed.
+//Create a new ArrayList with the specified element size AND specified initial allocated length. Returns NULL if the specified size * specified length exceeds MAXIMUM_LIST_BYTES or if allocation failed. Using this function directly will cause valgrind errors. To avoid them, use alNewLenBlankArrayList instead.
 arrayList* alNewLenArrayList(alESize size, alLength allocatedLength){
     #ifndef NO_SAFETY
     //Ensure the specified length is safe
@@ -63,7 +63,7 @@ arrayList* alNewLenArrayList(alESize size, alLength allocatedLength){
     return list;
 }
 
-//Create a new ArrayList with the specified element size and default initial length
+//Create a new ArrayList with the specified element size and default initial length. Using this function directly will cause valgrind errors. To avoid them, use alNewBlankArrayList instead.
 arrayList* alNewArrayList(alESize size){
     return alNewLenArrayList(size, (alLength) DEFAULT_INITIAL_LENGTH);
 }
