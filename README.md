@@ -1,5 +1,7 @@
 # ArrayList and ListString
 
+These files are a personal project that I wrote to learn about the implementation of a common data structure that I had used many times before but wanted to understand on a deeper level: Array List. I first came to the idea of writing this programme entirely in C when I was fixing a strange bug in a C++ project of mine. Exploring that bug showed me that C++ implements its standard library string as an array list. I thought that sounded really neat, and I could potentially use a purely C array list in future projects, so I wrote this. Once I had a generic array list implemented, I went on to create code for the special case of strings consisting of one-byte characters: after all, C and C++ provide extensive sets of string-related functions for good reason!
+
 The files arrayList.c and arrayList.h provide a type-generic implementation of the Array List data structure, capable of accepting elements of any size (in complete bytes) up to the 16-bit unsigned integer maximum. The arrayList can support up to 2^64 bytes, although relatively few applications require a list that large.
 
 Users should not modify the information in the arrayList directly. The provided arrayList functions manage and track the length of the list. Any external modifications that affect the list's length will result in undefined behaviour.
